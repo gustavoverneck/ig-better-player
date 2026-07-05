@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "IG Better Player",
+  "version": "0.1.0",
+  "description": "Adiciona controles de volume, tempo, velocidade e atalhos aos vídeos do Instagram.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.instagram.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.instagram.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options.html",
+  "icons": {
+    "128": "icons/icon128.png"
+  }
+}
