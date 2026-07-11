@@ -82,6 +82,3 @@ This extension is an independent project and is not affiliated with, endorsed by
 
 Instagram may change its website behavior at any time, which can break some extension features.
 
-## License
-
-MIT License
