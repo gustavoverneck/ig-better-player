@@ -4,22 +4,23 @@
 
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 
-  height: 48px;
-  padding: 8px;
+  height: 40px;
+  padding: 6px 8px;
   box-sizing: border-box;
 
-  border-radius: 12px;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.88),
-    rgba(0, 0, 0, 0.62)
-  );
-  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(10, 10, 12, 0.38);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.96);
 
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 12px;
+  font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.01em;
 
   pointer-events: auto;
 
@@ -42,53 +43,116 @@
 }
 
 .igbp-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   border: 0;
-  border-radius: 8px;
-  padding: 4px 7px;
+  border-radius: 999px;
+  padding: 0;
 
-  background: rgba(255, 255, 255, 0.16);
-  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.96);
 
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1;
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
 }
 
 .igbp-button:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.igbp-icon {
+  width: 15px;
+  height: 15px;
+  display: block;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: 0 0 auto;
+  pointer-events: none;
+}
+
+.igbp-volume-group {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  overflow: visible;
+}
+
+.igbp-volume-hover-area {
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  bottom: 0;
+  height: 136px;
+  background: transparent;
+}
+
+.igbp-volume-group .igbp-button {
+  position: relative;
+  z-index: 2;
 }
 
 .igbp-progress {
   flex: 1;
-  min-width: 80px;
-  accent-color: white;
+  min-width: 58px;
+  accent-color: rgba(255, 255, 255, 0.92);
 }
 
 .igbp-volume {
-  width: 72px;
-  accent-color: white;
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  width: 16px;
+  height: 88px;
+  margin: 0;
+  transform: translateX(-50%) translateY(10px);
+  transform-origin: bottom center;
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  writing-mode: bt-lr;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+  accent-color: rgba(255, 255, 255, 0.92);
 }
 
-.igbp-volume-label {
-  min-width: 42px;
-  text-align: right;
-  font-size: 11px;
-  opacity: 0.9;
+.igbp-volume-group:hover .igbp-volume,
+.igbp-volume-group:focus-within .igbp-volume,
+.igbp-volume-group.igbp-volume-open .igbp-volume {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
 }
 
 .igbp-time {
-  min-width: 84px;
+  min-width: 64px;
   white-space: nowrap;
   font-size: 11px;
-  opacity: 0.9;
+  opacity: 0.72;
 }
 
 .igbp-speed {
   border: 0;
-  border-radius: 8px;
-  padding: 4px 6px;
+  border-radius: 999px;
+  padding: 3px 5px;
 
-  background: rgba(255, 255, 255, 0.16);
-  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .igbp-speed option {

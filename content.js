@@ -14,6 +14,7 @@ let hideTimer = null;
 let extensionControlsAudio = false;
 let desiredVolume = DEFAULT_SETTINGS.volume;
 let desiredMuted = false;
+const BOTTOM_ACTIVATION_HEIGHT = 24;
 
 chrome.storage.sync.get(
   {
@@ -79,7 +80,8 @@ function createFloatingControls() {
   controls = document.createElement("div");
   controls.className = "igbp-floating-controls igbp-hidden";
 
-  const playButton = createButton("▶", "Play/Pause");
+  const playButton = createButton("Play/Pause");
+  setButtonIcon(playButton, "play");
 
   const progress = document.createElement("input");
   progress.type = "range";
@@ -92,7 +94,14 @@ function createFloatingControls() {
   timeLabel.className = "igbp-time";
   timeLabel.textContent = "00:00 / 00:00";
 
-  const muteButton = createButton("🔊", "Mute");
+  const volumeGroup = document.createElement("div");
+  volumeGroup.className = "igbp-volume-group";
+
+  const volumeHoverArea = document.createElement("div");
+  volumeHoverArea.className = "igbp-volume-hover-area";
+
+  const muteButton = createButton("Mute");
+  setButtonIcon(muteButton, "volume");
 
   const volume = document.createElement("input");
   volume.type = "range";
@@ -101,10 +110,6 @@ function createFloatingControls() {
   volume.step = "0.01";
   volume.value = String(settings.volume);
   volume.className = "igbp-volume";
-
-  const volumeLabel = document.createElement("span");
-  volumeLabel.className = "igbp-volume-label";
-  volumeLabel.textContent = `${Math.round(settings.volume * 100)}%`;
 
   const speed = document.createElement("select");
   speed.className = "igbp-speed";
@@ -121,11 +126,21 @@ function createFloatingControls() {
     playButton,
     progress,
     timeLabel,
-    muteButton,
-    volume,
-    volumeLabel,
+    volumeGroup,
     speed
   );
+
+  volumeGroup.appendChild(volumeHoverArea);
+  volumeGroup.append(muteButton);
+  volumeGroup.appendChild(volume);
+
+  volumeGroup.addEventListener("mouseenter", () => {
+    volumeGroup.classList.add("igbp-volume-open");
+  });
+
+  volumeGroup.addEventListener("mouseleave", () => {
+    volumeGroup.classList.remove("igbp-volume-open");
+  });
 
   document.body.appendChild(controls);
 
@@ -210,8 +225,9 @@ function createFloatingControls() {
     progress,
     timeLabel,
     muteButton,
+    volumeGroup,
+    volumeHoverArea,
     volume,
-    volumeLabel,
     speed
   };
 }
@@ -326,11 +342,7 @@ function handleMouseVisibility() {
   const videoRect = activeVideo.getBoundingClientRect();
   const controlsRect = controls.getBoundingClientRect();
 
-  const isOverVideo =
-    mouse.x >= videoRect.left &&
-    mouse.x <= videoRect.right &&
-    mouse.y >= videoRect.top &&
-    mouse.y <= videoRect.bottom;
+  const isOverBottomEdge = isInBottomActivationZone(mouse, videoRect);
 
   const isOverControls =
     mouse.x >= controlsRect.left &&
@@ -338,7 +350,7 @@ function handleMouseVisibility() {
     mouse.y >= controlsRect.top &&
     mouse.y <= controlsRect.bottom;
 
-  if (isOverVideo || isOverControls) {
+  if (isOverBottomEdge || isOverControls) {
     showControls();
     return;
   }
@@ -408,7 +420,24 @@ function isMouseOverActiveArea() {
     mouse.y >= controlsRect.top &&
     mouse.y <= controlsRect.bottom;
 
-  return isOverVideo || isOverControls;
+  return (
+    isInBottomActivationZone(mouse, videoRect) ||
+    isOverControls ||
+    isVolumeOpen()
+  );
+}
+
+function isInBottomActivationZone(mouse, videoRect) {
+  return (
+    mouse.x >= videoRect.left &&
+    mouse.x <= videoRect.right &&
+    mouse.y >= videoRect.bottom - BOTTOM_ACTIVATION_HEIGHT &&
+    mouse.y <= videoRect.bottom
+  );
+}
+
+function isVolumeOpen() {
+  return Boolean(controls?.__igbp?.volumeGroup?.classList.contains("igbp-volume-open"));
 }
 
 function positionControls(video) {
@@ -416,9 +445,9 @@ function positionControls(video) {
 
   const rect = video.getBoundingClientRect();
 
-  controls.style.left = `${Math.max(8, rect.left + 8)}px`;
-  controls.style.width = `${Math.max(260, rect.width - 16)}px`;
-  controls.style.top = `${Math.max(8, rect.bottom - 58)}px`;
+  controls.style.left = `${Math.max(6, rect.left + 6)}px`;
+  controls.style.width = `${Math.max(220, rect.width - 24)}px`;
+  controls.style.top = `${Math.max(6, rect.bottom - 46)}px`;
 }
 
 function syncControlsWithVideo(video) {
@@ -430,20 +459,13 @@ function syncControlsWithVideo(video) {
     timeLabel,
     muteButton,
     volume,
-    volumeLabel,
     speed
   } = controls.__igbp;
 
-  playButton.textContent = video.paused ? "▶" : "⏸";
-  muteButton.textContent = video.muted || video.volume === 0 ? "🔇" : "🔊";
+  setButtonIcon(playButton, video.paused ? "play" : "pause");
+  setButtonIcon(muteButton, video.muted || video.volume === 0 ? "mute" : "volume");
 
   volume.value = String(video.muted ? 0 : video.volume);
-
-  if (video.muted) {
-    volumeLabel.textContent = "0%";
-  } else {
-    volumeLabel.textContent = `${Math.round(video.volume * 100)}%`;
-  }
 
   speed.value = String(video.playbackRate);
 
@@ -461,13 +483,24 @@ function syncControlsWithVideo(video) {
     `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
 }
 
-function createButton(text, label) {
+function createButton(label) {
   const button = document.createElement("button");
   button.type = "button";
-  button.textContent = text;
-  button.title = label;
   button.className = "igbp-button";
+  button.title = label;
+  button.setAttribute("aria-label", label);
   return button;
+}
+
+function setButtonIcon(button, iconName) {
+  const icons = {
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true" class="igbp-icon"><path d="M9 6.75v10.5L17.25 12Z"></path></svg>',
+    pause: '<svg viewBox="0 0 24 24" aria-hidden="true" class="igbp-icon"><path d="M7.5 6.75h3v10.5h-3Zm6 0h3v10.5h-3Z"></path></svg>',
+    volume: '<svg viewBox="0 0 24 24" aria-hidden="true" class="igbp-icon"><path d="M5.25 10.5v3h3L12 17.25V6.75L8.25 10.5Z"></path><path d="M15.5 8.5a4 4 0 0 1 0 7"></path><path d="M17.75 6.25a7 7 0 0 1 0 11.5"></path></svg>',
+    mute: '<svg viewBox="0 0 24 24" aria-hidden="true" class="igbp-icon"><path d="M5.25 10.5v3h3L12 17.25V6.75L8.25 10.5Z"></path><path d="M15 9l4.5 6"></path><path d="M19.5 9 15 15"></path></svg>'
+  };
+
+  button.innerHTML = icons[iconName] || icons.volume;
 }
 
 function getMostRelevantVideo() {
