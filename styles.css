@@ -156,5 +156,6 @@
 }
 
 .igbp-speed option {
-  color: black;
+  background: #111317;
+  color: rgba(255, 255, 255, 0.96);
 }
